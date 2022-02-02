@@ -1,6 +1,5 @@
 {
   "dependencies": {
-    "@octokit/auth-token": "^2.5.0",
     "octokit": "^1.7.1"
   }
 }

@@ -1,16 +1,14 @@
 const { readFileSync } = require('fs')
-const { createTokenAuth } = require('@octokit/auth-token');
+const { Octokit } = require("octokit");
 
 async function main () {
-  // TODO: Get it from macOS Keychain.
-  const accessToken = readFileSync('github-personal-access-token', 'utf-8');
+  // TODO: Store the access token more securely. For example, get it from macOS Keychain.
+  const octokit = new Octokit({
+    auth: readFileSync('github-personal-access-token', 'utf-8').trim()
+  });
 
-  // console.log('accessToken is', accessToken);
-
-  const auth = createTokenAuth(accessToken);
-  const authentication = await auth();
-
-  console.log(authentication);
+  const { data } = await octokit.rest.users.getAuthenticated();
+  console.log(data);
 }
 
 main();
