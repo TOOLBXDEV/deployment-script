@@ -7,8 +7,13 @@ async function main () {
     auth: readFileSync('github-personal-access-token', 'utf-8').trim()
   });
 
-  const { data } = await octokit.rest.users.getAuthenticated();
-  console.log(data);
+  const mergedPRs = (await octokit.rest.pulls.list({
+    owner: 'TOOLBXDEV',
+    repo: 'api-action-test',
+    state: 'closed'
+  })).data.filter(({ merged_at }) => merged_at);
+
+  console.log('merged PRs are', mergedPRs);
 }
 
 main();
