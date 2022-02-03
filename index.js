@@ -15,7 +15,7 @@ async function fetchMergedPRs(repoName, page = 1) {
   })).data.filter(({ merged_at }) => merged_at);
 }
 
-async function main () {
+function getRepoFromArguments() {
   const repos = JSON.parse(readFileSync('repositories.json', 'utf-8'));
   const repo = process.argv[2];
 
@@ -27,8 +27,13 @@ async function main () {
     process.exit(1);
   }
 
-  // const mergedPRs = await fetchMergedPRs('api-action-test');
-  // console.log('merged PRs are', mergedPRs);
+  return repo;
+}
+
+async function main () {
+  const repo = getRepoFromArguments();
+  const mergedPRs = await fetchMergedPRs(repo);
+  console.log('merged PRs are', mergedPRs);
 }
 
 main();
