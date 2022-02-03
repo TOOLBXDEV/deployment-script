@@ -16,8 +16,11 @@ async function fetchMergedPRs(repoName, page = 1) {
 }
 
 async function main () {
-  const mergedPRs = await fetchMergedPRs('api-action-test');
-  console.log('merged PRs are', mergedPRs);
+  const repos = JSON.parse(readFileSync('repositories.json', 'utf-8'));
+  console.log('repos are', repos);
+
+  // const mergedPRs = await fetchMergedPRs('api-action-test');
+  // console.log('merged PRs are', mergedPRs);
 }
 
 main();
