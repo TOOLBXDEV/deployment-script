@@ -17,7 +17,15 @@ async function fetchMergedPRs(repoName, page = 1) {
 
 async function main () {
   const repos = JSON.parse(readFileSync('repositories.json', 'utf-8'));
-  console.log('repos are', repos);
+  const repo = process.argv[2];
+
+  if (process.argv.length !== 3 || !repos.includes(repo)) {
+    console.log('Please specify exactly one argument, which must be one of:');
+    for (const repo of repos) {
+      console.log(`- ${repo}`);
+    }
+    process.exit(1);
+  }
 
   // const mergedPRs = await fetchMergedPRs('api-action-test');
   // console.log('merged PRs are', mergedPRs);
