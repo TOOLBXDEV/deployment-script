@@ -17,7 +17,7 @@ This program enables you to understand which pull requests have been deployed to
 ## Installation (Set-Up)
 - Clone this repository to anywhere in your machine.
 - Configure the values in `config.json`.
-- On GitHub, [create a personal access token](https://github.com/settings/tokens), with `workflow` scope.
+- On GitHub, [create a personal access token](https://github.com/settings/tokens) with `workflow` scope.
 - Put this token into the `token` field in `config.json`.
 
 ## Usage
