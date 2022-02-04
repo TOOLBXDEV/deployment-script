@@ -28,21 +28,6 @@ async function fetchNewRefs(repo) {
   return (await exec(`./fetch-new-refs.sh ${repo}`)).stdout.trim().split('\n');
 }
 
-function getRepoFromArguments() {
-  const repos = JSON.parse(readFileSync('repos.json', 'utf-8'));
-  const repo = process.argv[2];
-
-  if (process.argv.length !== 3 || !repos.includes(repo)) {
-    console.log('Please specify exactly one argument, which must be one of:');
-    for (const repo of repos) {
-      console.log(`- ${repo}`);
-    }
-    process.exit(1);
-  }
-
-  return repo;
-}
-
 /**
  * Find the PRs that are merged after the deployment to production, but before deployment to
  * staging. This way, we will understand which PRs will actually be deployed to production.
@@ -62,9 +47,11 @@ function getRepoFromArguments() {
  * - If the first PR that does not exist in staging is found, we are done and can return the list of
  *   new PRs. If not, we need to fetch the next batch of PRs and continue the process.
  */
- async function findNewPRs() {
-  const repo = getRepoFromArguments();
+ async function findNewPRs(repo) {
   const newRefs = await fetchNewRefs(repo);
+
+  // console.log('newRefs are', newRefs);
+  // process.exit();
 
   if (newRefs.length === 0) {
     console.log('Production is the same as staging. Nothing to deploy.');
@@ -77,11 +64,10 @@ function getRepoFromArguments() {
 
   while (true) {
     const mergedPRs = await fetchMergedPRs(repo, pullsRequestsPageNumber);
+    // console.log('mergedPRs are', mergedPRs);
 
-    for (const { merge_commit_sha } of mergedPRs) {
-      const pr = merge_commit_sha;
-
-      if (newRefs.includes(pr)) {
+    for (const pr of mergedPRs) {
+      if (newRefs.includes(pr.merge_commit_sha)) {
         firstPRInStagingFound = true;
         newPRs.push(pr);
       } else {
@@ -96,8 +82,28 @@ function getRepoFromArguments() {
   }
 }
 
+function getRepoFromArguments() {
+  const repos = JSON.parse(readFileSync('repos.json', 'utf-8'));
+  const repo = process.argv[2];
+
+  if (process.argv.length !== 3 || !repos.includes(repo)) {
+    console.log('Please specify exactly one argument, which must be one of:');
+    for (const repo of repos) {
+      console.log(`- ${repo}`);
+    }
+    process.exit(1);
+  }
+
+  return repo;
+}
+
 async function main() {
-  const newPRs = await findNewPRs();
+  const repo = getRepoFromArguments();
+  const newPRs = await findNewPRs(repo);
+  // TODO: Print the new PRs and ask for approval.
+  //
+  // TODO: After the approval, make an API request, using the repo name, to run the production to
+  // deployment workflow.
 }
 
 main();
