@@ -58,9 +58,9 @@ async function fetchNewRefs(repo) {
     process.exit();
   }
 
-  const firstPRInStagingFound = false;
   const newPRs = [];
   let pullsRequestsPageNumber = 1;
+  let firstPRInStagingFound = false;
 
   while (true) {
     const mergedPRs = await fetchMergedPRs(repo, pullsRequestsPageNumber);
@@ -100,6 +100,7 @@ function getRepoFromArguments() {
 async function main() {
   const repo = getRepoFromArguments();
   const newPRs = await findNewPRs(repo);
+  console.log('newPRs are', newPRs.map(({ title }) => title));
   // TODO: Print the new PRs and ask for approval.
   //
   // TODO: After the approval, make an API request, using the repo name, to run the production to
