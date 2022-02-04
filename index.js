@@ -29,7 +29,7 @@ async function fetchNewRefs(repo) {
 }
 
 function getRepoFromArguments() {
-  const repos = JSON.parse(readFileSync('repositories.json', 'utf-8'));
+  const repos = JSON.parse(readFileSync('repos.json', 'utf-8'));
   const repo = process.argv[2];
 
   if (process.argv.length !== 3 || !repos.includes(repo)) {
