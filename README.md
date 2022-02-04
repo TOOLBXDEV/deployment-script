@@ -14,8 +14,9 @@ This program enables you to understand which pull requests have been deployed to
 - Git
 - Node.js
 
-## Installation (Set-Up)
+## Installation and Set-Up (Configuration)
 - Clone this repository to anywhere in your machine.
+- Run `npm install`.
 - Configure the values in `config.json`.
 - On GitHub, [create a personal access token](https://github.com/settings/tokens) with `workflow` scope.
 - Put this token into the `token` field in `config.json`.
@@ -24,3 +25,6 @@ This program enables you to understand which pull requests have been deployed to
 TODO: Change the file names of the scripts to make them compatible with this instructions here.
 
 From a terminal, change into the directory of this repository and run `./deploy <repo>`, where `<repo>` is the name of the repository that you want to deploy. Then follow the instructions.
+
+## Notes
+The first time that you run the program for a repository, it will take longer than the subsequent times, since the first run on a repository will clone the repository to your machine.
