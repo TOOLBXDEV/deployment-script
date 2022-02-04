@@ -65,6 +65,12 @@ function getRepoFromArguments() {
  async function findNewPRs() {
   const repo = getRepoFromArguments();
   const newRefs = await fetchNewRefs(repo);
+
+  if (newRefs.length === 0) {
+    console.log('Production is the same as staging. Nothing to deploy.');
+    process.exit();
+  }
+
   const firstPRInStagingFound = false;
   const newPRs = [];
   let pullsRequestsPageNumber = 1;
