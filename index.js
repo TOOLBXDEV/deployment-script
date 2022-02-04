@@ -1,10 +1,9 @@
-const { promisify } = require('util');
-const { readFileSync } = require('fs');
-const { Octokit } = require("octokit");
+const prompt = require('prompt');
+const { Octokit } = require('octokit');
 
-const exec = promisify(require('child_process').exec);
+const exec = require('util').promisify(require('child_process').exec);
 
-const config = JSON.parse(readFileSync('config.json', 'utf-8'));
+const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
 const octokit = new Octokit({ auth: config.token });
@@ -22,7 +21,7 @@ async function fetchMergedPRs(repoName, page) {
 
 /**
  * Get the list of commits that exist in staging, but do not exist in production. Since these are on
- * the master branch, all of these commits correspond to pull requests.
+ * the default branch, all of these commits correspond to pull requests.
  */
 async function fetchNewRefs(repo) {
   return (await exec(`./fetch-new-refs.sh ${config.organization} ${repo}`)).stdout.trim().split('\n');
@@ -50,9 +49,6 @@ async function fetchNewRefs(repo) {
  async function findNewPRs(repo) {
   const newRefs = await fetchNewRefs(repo);
 
-  // console.log('newRefs are', newRefs);
-  // process.exit();
-
   if (newRefs.length === 0) {
     console.log('Production is the same as staging. Nothing to deploy.');
     process.exit();
@@ -64,7 +60,11 @@ async function fetchNewRefs(repo) {
 
   while (true) {
     const mergedPRs = await fetchMergedPRs(repo, pullsRequestsPageNumber);
-    // console.log('mergedPRs are', mergedPRs);
+
+    if (mergedPRs.length === 0) {
+      console.log("No merged PRs found. This means that there is probably something wrong the repo. Cancelling deployment.");
+      process.exit(1);
+    }
 
     for (const pr of mergedPRs) {
       if (newRefs.includes(pr.merge_commit_sha)) {
@@ -75,10 +75,37 @@ async function fetchNewRefs(repo) {
         // else, we are still searching for the first PR, hence just continue.
       }
     }
-
     // If we are here, we weren't able to find the first PR that does not exist in staging. Hence,
     // we need to fetch the next batch of merged PRs and repeat.
     pullsRequestsPageNumber++;
+  }
+}
+
+async function promptForApproval(repo) {
+  console.log('Fetching the new pull requests since the last deployment to production.')
+
+  const newPRs = await findNewPRs(repo);
+
+  console.log('Pull requests deployed to staging since the last deployment to production are:\n');
+
+  for (const pr of newPRs) {
+    console.log(`- ${pr.user.login}: ${pr.title}`);
+  }
+
+  prompt.message = '';
+  prompt.start();
+
+  const correctAnswer = 'approved';
+  const { answer } = await prompt.get({
+    name: 'answer',
+    description: `\nPlease take a screenshot of the pull requests and post it to the #dev Slack channel, tagging every developer above. After getting their approval, type "${correctAnswer}" (without the quotes) and press return to continue the deployment`,
+  });
+
+  if (answer !== correctAnswer) {
+    console.log('Cancelling deployment.');
+    process.exit(1);
+  } else {
+    console.log(`Deploying ${repo} to production.`);
   }
 }
 
@@ -99,10 +126,7 @@ function getRepoFromArguments() {
 
 async function main() {
   const repo = getRepoFromArguments();
-  const newPRs = await findNewPRs(repo);
-  console.log('newPRs are', newPRs.map(({ title }) => title));
-  // TODO: Print the new PRs and ask for approval.
-  //
+  await promptForApproval(repo);
   // TODO: After the approval, make an API request, using the repo name, to run the production to
   // deployment workflow.
 }
