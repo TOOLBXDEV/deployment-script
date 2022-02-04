@@ -1,4 +1,3 @@
 # Ignore checked out repositories
 /*.git/
 /node_modules/
-github-personal-access-token

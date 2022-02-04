@@ -1,0 +1,9 @@
+{
+  "token": "GitHub Personal Access Token goes here",
+  "organization": "TOOLBXDEV",
+  "repos": [
+    "api-action-test",
+    "web",
+    "mobile"
+  ]
+}

@@ -4,14 +4,14 @@ const { Octokit } = require("octokit");
 
 const exec = promisify(require('child_process').exec);
 
+const config = JSON.parse(readFileSync('config.json', 'utf-8'));
+
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
-const octokit = new Octokit({
-  auth: readFileSync('github-personal-access-token', 'utf-8').trim()
-});
+const octokit = new Octokit({ auth: config.token });
 
 async function fetchMergedPRs(repoName, page) {
   return (await octokit.rest.pulls.list({
-    owner: 'TOOLBXDEV',
+    owner: config.organization,
     repo: repoName,
     state: 'closed',
     // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
@@ -25,7 +25,7 @@ async function fetchMergedPRs(repoName, page) {
  * the master branch, all of these commits correspond to pull requests.
  */
 async function fetchNewRefs(repo) {
-  return (await exec(`./fetch-new-refs.sh ${repo}`)).stdout.trim().split('\n');
+  return (await exec(`./fetch-new-refs.sh ${config.organization} ${repo}`)).stdout.trim().split('\n');
 }
 
 /**
@@ -83,7 +83,7 @@ async function fetchNewRefs(repo) {
 }
 
 function getRepoFromArguments() {
-  const repos = JSON.parse(readFileSync('repos.json', 'utf-8'));
+  const { repos } = config;
   const repo = process.argv[2];
 
   if (process.argv.length !== 3 || !repos.includes(repo)) {

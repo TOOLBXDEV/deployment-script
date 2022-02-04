@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -e
 
-REPO="$1".git
+ORG="$1"
+REPO="$2".git
 
 if [[ ! -d "$REPO" ]]
 then
-  git clone --mirror git@github.com:TOOLBXDEV/"$REPO"
+  git clone --mirror git@github.com:"$ORG"/"$REPO"
 fi
 
 cd "$REPO"
