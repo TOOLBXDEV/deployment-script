@@ -33,14 +33,14 @@ async function fetchNewRefs(repo) {
  *
  * To do so, starting from the latest merged PR and going back chronologically, we will:
  *
- * - Find the first PR that exist in staging. The first (couple) PRs are potentially not in staging,
- *   since their deployment to staging might not yet be complete if they have just recently been
- *   merged. After finding the PR, add it to the list of new PRs. Finding the first PR that exist in
- *   staging simply means checking if the PR is in the list of new refs.
+ * - Find the first PR that exists in staging. The first (couple) PRs are potentially not in
+ *   staging, since their deployment to staging might not yet be complete if they have just recently
+ *   been merged. After finding the PR, add it to the list of new PRs. Finding the first PR that
+ *   exists in staging simply means checking if the PR is in the list of new refs.
  *
  * - Continuing from the found PR, find the first PR that does not exist in staging. While doing so,
- *   add all PRs that exist in staging to the list of new PRs. Similarly to the finding the first PR
- *   that exist in staging, finding the first PR that does not exist in staging simply means
+ *   add all PRs that exist in staging to the list of new PRs. Similarly to the finding the first
+ *   PR that exists in staging, finding the first PR that does not exist in staging simply means
  *   checking if the PR is _not_ in the list of new refs.
  *
  * - If the first PR that does not exist in staging is found, we are done and can return the list of
