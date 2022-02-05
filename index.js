@@ -156,4 +156,6 @@ async function triggerDeploymentWorkflow() {
     // TODO: Change this to 'staging'
     ref: 'master',
   });
+
+  console.log(`Started deployment. You can view the progress at https://github.com/${config.organization}/${repo}/actions/workflows/deploy-to-production.yml`);
 }
