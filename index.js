@@ -38,6 +38,9 @@ async function main() {
 }
 
 /**
+ * TODO: Mention how every commit in the default branch corresponds to a pull request, and change
+ * the implementation accordingly.
+ *
  * Find the PRs that are merged after the deployment to production, but before deployment to
  * staging. This way, we will understand which PRs will actually be deployed to production.
  *
@@ -49,8 +52,8 @@ async function main() {
  *   exists in staging simply means checking if the PR is in the list of new refs.
  *
  * - Continuing from the found PR, find the first PR that does not exist in staging. While doing so,
- *   add all PRs that exist in staging to the list of new PRs. Similarly to the finding the first
- *   PR that exists in staging, finding the first PR that does not exist in staging simply means
+ *   add all PRs that exist in staging to the list of new PRs. Similarly to the finding the first PR
+ *   that exists in staging, finding the first PR that does not exist in staging simply means
  *   checking if the PR is _not_ in the list of new refs.
  *
  * - If the first PR that does not exist in staging is found, we are done and can return the list of
