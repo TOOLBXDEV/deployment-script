@@ -1,30 +1,66 @@
-const prompt = require('prompt');
-const { Octokit } = require('octokit');
-
-const exec = require('util').promisify(require('child_process').exec);
-
+//
+// Setup and Execution
+//
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 
-// TODO: Store the access token more securely. For example, get it from macOS Keychain.
-const octokit = new Octokit({ auth: config.token });
+function getRepoFromArguments() {
+  const { repos } = config;
+  const repo = process.argv[2];
 
-async function fetchMergedPRs(repoName, page) {
-  return (await octokit.rest.pulls.list({
-    owner: config.organization,
-    repo: repoName,
-    state: 'closed',
-    // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
-    per_page: 100,
-    page,
-  })).data.filter(({ merged_at }) => merged_at);
+  if (process.argv.length !== 3 || !repos.includes(repo)) {
+    console.log('Please specify exactly one argument, which must be one of:');
+    for (const repo of repos) {
+      console.log(`- ${repo}`);
+    }
+    process.exit(1);
+  }
+
+  return repo;
 }
 
-/**
- * Get the list of commits that exist in staging, but do not exist in production. Since these are on
- * the default branch, all of these commits correspond to pull requests.
- */
-async function fetchNewRefs(repo) {
-  return (await exec(`./fetch-new-refs.sh ${config.organization} ${repo}`)).stdout.trim().split('\n');
+const repo = getRepoFromArguments();
+
+// TODO: Store the access token more securely. For example, get it from macOS Keychain.
+const octokit = new (require('octokit').Octokit)({ auth: config.token });
+const baseOctokitArgs = {
+  owner: config.organization,
+  repo,
+};
+
+main();
+
+//
+// Helper Functions
+//
+async function main() {
+  console.log('Fetching the new pull requests since the last deployment to production.')
+
+  const newPRs = await findNewPRs(repo);
+
+  console.log('Pull requests deployed to staging since the last deployment to production are:\n');
+
+  for (const pr of newPRs) {
+    console.log(`- ${pr.user.login}: ${pr.title}`);
+  }
+
+  const prompt = require('prompt');
+
+  prompt.message = '';
+  prompt.start();
+
+  const correctAnswer = 'approved';
+  const { answer } = await prompt.get({
+    name: 'answer',
+    description: `\nPlease take a screenshot of the pull requests and post it to the #dev Slack channel, tagging every developer above. After getting their approval, type "${correctAnswer}" (without the quotes) and press return to continue the deployment`,
+  });
+
+  if (answer !== correctAnswer) {
+    console.log('Cancelling deployment.');
+    process.exit(1);
+  } else {
+    console.log(`Deploying ${repo} to production.`);
+    await triggerDeploymentWorkflow();
+  }
 }
 
 /**
@@ -46,8 +82,8 @@ async function fetchNewRefs(repo) {
  * - If the first PR that does not exist in staging is found, we are done and can return the list of
  *   new PRs. If not, we need to fetch the next batch of PRs and continue the process.
  */
- async function findNewPRs(repo) {
-  const newRefs = await fetchNewRefs(repo);
+ async function findNewPRs() {
+  const newRefs = await fetchNewRefs();
 
   if (newRefs.length === 0) {
     console.log('Production is the same as staging. Nothing to deploy.');
@@ -59,7 +95,7 @@ async function fetchNewRefs(repo) {
   let firstPRInStagingFound = false;
 
   while (true) {
-    const mergedPRs = await fetchMergedPRs(repo, pullsRequestsPageNumber);
+    const mergedPRs = await fetchMergedPRs(pullsRequestsPageNumber);
 
     if (mergedPRs.length === 0) {
       console.log("No merged PRs found. This means that there is probably something wrong the repo. Cancelling deployment.");
@@ -81,54 +117,32 @@ async function fetchNewRefs(repo) {
   }
 }
 
-async function promptForApproval(repo) {
-  console.log('Fetching the new pull requests since the last deployment to production.')
+/**
+ * Get the list of commits that exist in staging, but do not exist in production. Since these are on
+ * the default branch, all of these commits correspond to pull requests.
+ */
+ async function fetchNewRefs() {
+  const exec = require('util').promisify(require('child_process').exec);
 
-  const newPRs = await findNewPRs(repo);
+  return (await exec(`./fetch-new-refs.sh ${config.organization} ${repo}`)).stdout.trim().split('\n');
+}
 
-  console.log('Pull requests deployed to staging since the last deployment to production are:\n');
+async function fetchMergedPRs(page) {
+  return (await octokit.rest.pulls.list({
+    ...baseOctokitArgs,
+    state: 'closed',
+    // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
+    per_page: 100,
+    page,
+  })).data.filter(({ merged_at }) => merged_at);
+}
 
-  for (const pr of newPRs) {
-    console.log(`- ${pr.user.login}: ${pr.title}`);
-  }
-
-  prompt.message = '';
-  prompt.start();
-
-  const correctAnswer = 'approved';
-  const { answer } = await prompt.get({
-    name: 'answer',
-    description: `\nPlease take a screenshot of the pull requests and post it to the #dev Slack channel, tagging every developer above. After getting their approval, type "${correctAnswer}" (without the quotes) and press return to continue the deployment`,
+async function triggerDeploymentWorkflow() {
+  await octokit.rest.actions.createWorkflowDispatch({
+    ...baseOctokitArgs,
+    // TODO: Make this configurable
+    workflow_id: 'deploy-to-production.yml',
+    // TODO: Change this to 'staging'
+    ref: 'master',
   });
-
-  if (answer !== correctAnswer) {
-    console.log('Cancelling deployment.');
-    process.exit(1);
-  } else {
-    console.log(`Deploying ${repo} to production.`);
-  }
 }
-
-function getRepoFromArguments() {
-  const { repos } = config;
-  const repo = process.argv[2];
-
-  if (process.argv.length !== 3 || !repos.includes(repo)) {
-    console.log('Please specify exactly one argument, which must be one of:');
-    for (const repo of repos) {
-      console.log(`- ${repo}`);
-    }
-    process.exit(1);
-  }
-
-  return repo;
-}
-
-async function main() {
-  const repo = getRepoFromArguments();
-  await promptForApproval(repo);
-  // TODO: After the approval, make an API request, using the repo name, to run the production to
-  // deployment workflow.
-}
-
-main();
