@@ -118,14 +118,14 @@ async function main() {
 
   const newRefs = (
     await exec(`./fetch-new-refs.sh ${config.organization} ${repo}`)
-  ).stdout.trim().split('\n');
+  ).stdout.trim();
 
-  if (newRefs.length === 0) {
+  if (!newRefs) {
     console.log('Production is the same as staging. Nothing to deploy.');
     process.exit();
   }
 
-  return newRefs;
+  return newRefs.split('\n');
 }
 
 async function fetchMergedPRs(page) {
