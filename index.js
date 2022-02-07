@@ -53,6 +53,26 @@ async function main() {
  *
  * - Fetch merged pull requests from GitHub and filter them by the refs that we discovered in the
  *   previous step.
+ *
+ * On another note, it might be possible to "improve the performance" (very very negligibly) by
+ * assuming that the PRs fetched from GitHub will be in the same order of the ref order between the
+ * "production" and "staging" tags. Although I believe that this is currently a correct assumption,
+ * any "performance gains" would not be worth the risk of making the program less correct.
+ *
+ * However, if there was no such risk, the "performance improvement" would have been achieved as
+ * follows: The first (couple) PRs fetched would possibly be the PRs that have just been merged and
+ * hence, those PRs wouldn't even be in staging yet. So, starting from the latest PR, we would
+ * search for the first PR that is in staging. After finding it, we would simply splice the PR array
+ * as:
+ *
+ *  - Starting index: Index of the first PR that is in staging.
+ *  - Ending index: Starting index + number of commits between staging and production.
+ *
+ * However, this is not too straightforward either, since an "edge case" is that the number of PRs
+ * since the last deployment to production are very high, like almost 100. In that case, we would
+ * need to fetch the next group of PRs and do the "splice" operation over two arrays. If the number
+ * is even more, then we would need to do it over more arrays, etc. All of this extra cases that
+ * need to be accommodated would increase the risk of introducing bugs.
  */
  async function displayNewPRs() {
   console.log('Fetching the new pull requests since the last deployment to production.');
