@@ -38,26 +38,21 @@ async function main() {
 }
 
 /**
- * TODO: Mention how every commit in the default branch corresponds to a pull request, and change
- * the implementation accordingly.
+ * Find the pull requests that exist in staging, but not in production.
  *
- * Find the PRs that are merged after the deployment to production, but before deployment to
- * staging. This way, we will understand which PRs will actually be deployed to production.
+ * The idea is, every commit on the default branch corresponds to a pull request, since a direct
+ * push is not allowed to it. That is, any changes on the default branch can be made only through
+ * pull requests.
  *
- * To do so, starting from the latest merged PR and going back chronologically, we will:
+ * Keeping this in mind, to find out all pull requests that exist in staging but not in production,
+ * we can:
  *
- * - Find the first PR that exists in staging. The first (couple) PRs are potentially not in
- *   staging, since their deployment to staging might not yet be complete if they have just recently
- *   been merged. After finding the PR, add it to the list of new PRs. Finding the first PR that
- *   exists in staging simply means checking if the PR is in the list of new refs.
+ * - Find out the commits between "staging" and "production" tags. Since the tags point to commits
+ *   in the default branch, every such commit corresponds to a pull request. Hence, this gives us
+ *   the pull requests that exist in staging, but not in production.
  *
- * - Continuing from the found PR, find the first PR that does not exist in staging. While doing so,
- *   add all PRs that exist in staging to the list of new PRs. Similarly to the finding the first PR
- *   that exists in staging, finding the first PR that does not exist in staging simply means
- *   checking if the PR is _not_ in the list of new refs.
- *
- * - If the first PR that does not exist in staging is found, we are done and can return the list of
- *   new PRs. If not, we need to fetch the next batch of PRs and continue the process.
+ * - Fetch merged pull requests from GitHub and filter them by the refs that we discovered in the
+ *   previous step.
  */
  async function displayNewPRs() {
   console.log('Fetching the new pull requests since the last deployment to production.');
@@ -65,28 +60,25 @@ async function main() {
   const newRefs = await fetchNewRefs();
   const newPRs = [];
   let pullsRequestsPageNumber = 1;
-  let firstPRInStagingFound = false;
 
   find_new_prs:
   while (true) {
     const mergedPRs = await fetchMergedPRs(pullsRequestsPageNumber);
 
     if (mergedPRs.length === 0) {
-      console.log("No merged PRs found. This means that there is probably something wrong the repo. Cancelling deployment.");
+      console.log("No merged PRs found. This means that there is probably something wrong the repo (or with this program). Cancelling deployment.");
       process.exit(1);
     }
 
     for (const pr of mergedPRs) {
       if (newRefs.includes(pr.merge_commit_sha)) {
-        firstPRInStagingFound = true;
         newPRs.push(pr);
-      } else {
-        if (firstPRInStagingFound) break find_new_prs;
-        // else, we are still searching for the first PR, hence just continue.
+
+        if (newPRs.length === newRefs.length) break find_new_prs;
       }
     }
-    // If we are here, we weren't able to find the first PR that does not exist in staging. Hence,
-    // we need to fetch the next batch of merged PRs and repeat.
+    // If we are here, we weren't able to find all PRs. Hence, we need to fetch the next batch of
+    // merged PRs and repeat.
     pullsRequestsPageNumber++;
   }
 
