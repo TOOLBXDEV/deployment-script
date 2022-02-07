@@ -165,8 +165,7 @@ async function triggerDeploymentWorkflow() {
     ...baseOctokitArgs,
     // TODO: Make this configurable
     workflow_id: 'deploy-to-production.yml',
-    // TODO: Change this to 'staging'
-    ref: 'master',
+    ref: 'staging',
   });
 
   console.log(`Started deployment. You can view the progress at https://github.com/${config.organization}/${repo}/actions/workflows/deploy-to-production.yml`);
