@@ -1,6 +1,3 @@
-
-TODO: In the deployment to production script, deploy from the "staging" tag, instead of simply from the HEAD of the default branch (which is `master` for our repositories). ANSWER: Actually, this is not applicable, since we choose which branch (or tag) to run a workflow on. So it simply depends on the chosen branch (will be the `staging` tag for us). We just need to change the deployment scripts to tag the commits as `staging` or `production` and push these tags to the repository.
-
 ## Introduction
 This program enables you to understand which pull requests have been deployed to the staging environment since the last deployment to the production environment. For this program to be of use, your development and deployment workflow should be as follows:
 
