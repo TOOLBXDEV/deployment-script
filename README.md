@@ -13,7 +13,7 @@ This program enables you to understand which pull requests have been deployed to
 
 ## Installation and Set-Up (Configuration)
 - Clone this repository to anywhere in your machine.
-- Run `npm install`.
+- Change into this directory and run `npm install`.
 - On GitHub, [create a personal access token](https://github.com/settings/tokens) with `workflow` scope.
 - Put this token into the `token` field in `config.json`.
 
