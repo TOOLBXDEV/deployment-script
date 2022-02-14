@@ -19,8 +19,6 @@ This program enables you to understand which pull requests have been deployed to
 - Put this token into the `token` field in `config.json`.
 
 ## Usage
-TODO: Change the file names of the scripts to make them compatible with this instructions here.
-
 From a terminal, change into the directory of this repository and run `./deploy <repo>`, where `<repo>` is the name of the repository that you want to deploy. Then follow the instructions.
 
 ## Notes
