@@ -15,7 +15,14 @@ This program enables you to understand which pull requests have been deployed to
 - Clone this repository to anywhere in your machine.
 - Change into this directory and run `npm install`.
 - On GitHub, [create a personal access token](https://github.com/settings/tokens) with `workflow` scope.
-- Put this token into the `token` field in `config.json`.
+- Create a `config.json` with the following structure:
+
+  ```json
+  {
+    "token": "Your GitHub Personal Access Token goes here",
+    "organization": "Your organization name on GitHub goes here"
+  }
+  ```
 
 ## Usage
 From a terminal, change into the directory of this repository and run `./deploy <repo>`, where `<repo>` is the name of the repository that you want to deploy. Then follow the instructions.

@@ -2,9 +2,29 @@
 // Setup and Execution
 //
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
+// TODO: Store the access token more securely. For example, get it from macOS Keychain.
+const octokit = new (require('octokit').Octokit)({ auth: config.token });
+const baseOctokitArgs = { owner: config.organization };
 
-function getRepoFromArguments() {
-  const { repos } = config;
+let repo;
+
+main();
+
+//
+// Helper Functions
+//
+async function main() {
+  repo = await getRepoFromArguments();
+
+  await displayNewPRs();
+  await promptForDeployment();
+}
+
+async function getRepoFromArguments() {
+  const repos = (
+    await octokit.rest.repos.listForOrg({ org: config.organization })
+  ).data.map(({ name }) => name);
+
   const repo = process.argv[2];
 
   if (process.argv.length !== 3 || !repos.includes(repo)) {
@@ -15,26 +35,9 @@ function getRepoFromArguments() {
     process.exit(1);
   }
 
+  baseOctokitArgs.repo = repo;
+
   return repo;
-}
-
-const repo = getRepoFromArguments();
-
-// TODO: Store the access token more securely. For example, get it from macOS Keychain.
-const octokit = new (require('octokit').Octokit)({ auth: config.token });
-const baseOctokitArgs = {
-  owner: config.organization,
-  repo,
-};
-
-main();
-
-//
-// Helper Functions
-//
-async function main() {
-  await displayNewPRs();
-  await promptForDeployment();
 }
 
 /**
