@@ -160,7 +160,7 @@ async function promptForDeployment() {
   }
 
   console.log(`Deploying ${repo} to production.`);
-  triggerDeploymentWorkflow();
+  await triggerDeploymentWorkflow();
 }
 
 async function triggerDeploymentWorkflow() {
