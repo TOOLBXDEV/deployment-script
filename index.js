@@ -114,11 +114,14 @@ async function displayNewPRs() {
 
   for (const i = 0; i < newPRs.length; ++i) {
     const pr = newPRs[i]
-    uniqueUsers.add(pr.user.login)
-    const userName = chalk.blue(pr.user.login + ":")
+    const userName = chalk.blue(pr.user.login + ':')
     const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))
-    console.log(`(${i + 1}) ${userName} ${pr.title} ${mergeDate}`)
+
+    uniqueUsers.add(pr.user.login)
+
+    console.log(`(${i + 1}) ${userName} ${pr.title} (${mergeDate})`)
   }
+  
   console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
 }
 
