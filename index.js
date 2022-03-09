@@ -22,7 +22,7 @@ const userNameMappingsGithubToSlack = {
   ['victorgong16']: 'Victor Gong',
   ['matthewviegas']: 'Matthew Viegas',
   ['brucenguyen']: 'Bruce Nguyen',
-  ['lauraleeg']: '@Lauralee',  
+  ['lauraleeg']: 'Lauralee',  
 }
 
 let repo;
