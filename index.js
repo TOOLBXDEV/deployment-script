@@ -140,7 +140,7 @@ async function getRepoFromArguments() {
     uniqueUsers.add(pr.user.login)
     console.log(`(${++count}) \x1B[36m'${pr.user.login}: \x1B[0m${pr.title} \x1B[32m(${DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED)})\x1B[0m`);
   }
-  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).map(name => `@${userNameMappingsGithubToSlack[name]}` || name).join(' ')}`)
+  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).map(name => userNameMappingsGithubToSlack[name] ? `@${userNameMappingsGithubToSlack[name]}` : name).join(' ')}`)
 }
 
 /**
