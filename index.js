@@ -148,6 +148,7 @@ async function fetchMergedPRs(page) {
     per_page: 100,
     page,
     sort:'updated',
+    direction:'asc',
   })).data.filter(({ merged_at }) => merged_at);
 }
 
