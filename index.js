@@ -109,7 +109,6 @@ async function getRepoFromArguments() {
   }
 
   console.log('Pull requests deployed to staging since the last deployment to production are:\n');
-  //sort the PRs by date
 
   const uniqueUsers = new Set()
 
