@@ -9,22 +9,6 @@ const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 const octokit = new (require('octokit').Octokit)({ auth: config.token });
 const baseOctokitArgs = { owner: config.organization };
 
-//add and remove team members as needed
-const userNameMappingsGithubToSlack = {
-  ['timfenney']: 'Timothy Fenney',
-  ['luke-rivett']: 'Luke Rivett',
-  ['Juno-Jung']: 'Juno Jung',
-  ['amahalwy']: 'Ahmed El Mahallawy',
-  ['kerrytoolbx']: 'Kerry Zhu',
-  ['macdaj']: 'Maciej Dajnowiec',
-  ['aaronchlam']: 'Aaron',
-  ['ugultopu']: 'Utku Gultopu',
-  ['victorgong16']: 'Victor Gong',
-  ['matthewviegas']: 'Matthew Viegas',
-  ['brucenguyen']: 'Bruce Nguyen',
-  ['lauraleeg']: 'Lauralee',  
-}
-
 let repo;
 
 main();
@@ -100,7 +84,7 @@ async function getRepoFromArguments() {
   console.log('Fetching the new pull requests since the last deployment to production.');
 
   const newRefs = await fetchNewRefs();
-  let newPRs = [];
+  const newPRs = [];
   let pullsRequestsPageNumber = 1;
 
   find_new_prs:
@@ -128,19 +112,14 @@ async function getRepoFromArguments() {
   //sort the PRs by date
 
   const uniqueUsers = new Set()
-  try{
-  const sortedPRs = newPRs.sort((a,b) => 
-    DateTime.fromISO(a.merged_at) < DateTime.fromISO(b.merged_at) ? -1 : 1
-  )
-  newPRs = sortedPRs
-  }
-  catch(_e){}
+
   let count = 0;
   for (const pr of newPRs) {
     uniqueUsers.add(pr.user.login)
-    console.log(`(${++count}) \x1B[36m'${pr.user.login}: \x1B[0m${pr.title} \x1B[32m(${DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED)})\x1B[0m`);
+    //console.log(`(${++count}) \x1B[36m${pr.user.login}: \x1B[0m${pr.title} \x1B[32m(${DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED)})\x1B[0m`);
+    console.log(`(${++count}) ${chalk.blue(pr.user.login + ':')} ${pr.title} ${chalk.gereen(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))}`)
   }
-  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).map(name => userNameMappingsGithubToSlack[name] ? `@${userNameMappingsGithubToSlack[name]}` : name).join(' ')}`)
+  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
 }
 
 /**
@@ -169,6 +148,7 @@ async function fetchMergedPRs(page) {
     // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
     per_page: 100,
     page,
+    sort:'updated',
   })).data.filter(({ merged_at }) => merged_at);
 }
 
