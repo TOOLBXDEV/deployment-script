@@ -1,10 +1,29 @@
 //
 // Setup and Execution
+
+const { DateTime } = require('luxon');
+
 //
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
 const octokit = new (require('octokit').Octokit)({ auth: config.token });
 const baseOctokitArgs = { owner: config.organization };
+
+//add and remove team members as needed
+const userNameMappingsGithubToSlack = {
+  ['timfenney']: 'Timothy Fenney',
+  ['luke-rivett']: 'Luke Rivett',
+  ['Juno-Jung']: 'Juno Jung',
+  ['amahalwy']: 'Ahmed El Mahallawy',
+  ['kerrytoolbx']: 'Kerry Zhu',
+  ['macdaj']: 'Maciej Dajnowiec',
+  ['aaronchlam']: 'Aaron',
+  ['ugultopu']: 'Utku Gultopu',
+  ['victorgong16']: 'Victor Gong',
+  ['matthewviegas']: 'Matthew Viegas',
+  ['brucenguyen']: 'Bruce Nguyen',
+  ['lauraleeg']: '@Lauralee',  
+}
 
 let repo;
 
@@ -81,7 +100,7 @@ async function getRepoFromArguments() {
   console.log('Fetching the new pull requests since the last deployment to production.');
 
   const newRefs = await fetchNewRefs();
-  const newPRs = [];
+  let newPRs = [];
   let pullsRequestsPageNumber = 1;
 
   find_new_prs:
@@ -106,10 +125,22 @@ async function getRepoFromArguments() {
   }
 
   console.log('Pull requests deployed to staging since the last deployment to production are:\n');
+  //sort the PRs by date
 
-  for (const pr of newPRs) {
-    console.log(`- ${pr.user.login}: ${pr.title}`);
+  const uniqueUsers = new Set()
+  try{
+  const sortedPRs = newPRs.sort((a,b) => 
+    DateTime.fromISO(a.merged_at) < DateTime.fromISO(b.merged_at) ? -1 : 1
+  )
+  newPRs = sortedPRs
   }
+  catch(_e){}
+  let count = 0;
+  for (const pr of newPRs) {
+    uniqueUsers.add(pr.user.login)
+    console.log(`(${++count}) \x1B[36m'${pr.user.login}: \x1B[0m${pr.title} \x1B[32m(${DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED)})\x1B[0m`);
+  }
+  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).map(name => `@${userNameMappingsGithubToSlack[name]}` || name).join(' ')}`)
 }
 
 /**
