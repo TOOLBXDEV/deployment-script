@@ -112,11 +112,12 @@ async function getRepoFromArguments() {
 
   const uniqueUsers = new Set()
 
-  let count = 0;
-  for (const pr of newPRs) {
+  for (const i = 0; i < newPRs.length; ++i) {
+    const pr = newPRs[i]
     uniqueUsers.add(pr.user.login)
-    //console.log(`(${++count}) \x1B[36m${pr.user.login}: \x1B[0m${pr.title} \x1B[32m(${DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED)})\x1B[0m`);
-    console.log(`(${++count}) ${chalk.blue(pr.user.login + ':')} ${pr.title} ${chalk.gereen(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))}`)
+    const userName = chalk.blue(pr.user.login + ":")
+    const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))
+    console.log(`(${i+1}) ${userName} ${pr.title} ${mergeDate}`)
   }
   console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
 }
@@ -148,7 +149,6 @@ async function fetchMergedPRs(page) {
     per_page: 100,
     page,
     sort:'updated',
-    direction:'asc',
   })).data.filter(({ merged_at }) => merged_at);
 }
 
