@@ -80,7 +80,7 @@ async function getRepoFromArguments() {
  * is even more, then we would need to do it over more arrays, etc. All of this extra cases that
  * need to be accommodated would increase the risk of introducing bugs.
  */
- async function displayNewPRs() {
+async function displayNewPRs() {
   console.log('Fetching the new pull requests since the last deployment to production.');
 
   const newRefs = await fetchNewRefs();
@@ -117,7 +117,7 @@ async function getRepoFromArguments() {
     uniqueUsers.add(pr.user.login)
     const userName = chalk.blue(pr.user.login + ":")
     const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))
-    console.log(`(${i+1}) ${userName} ${pr.title} ${mergeDate}`)
+    console.log(`(${i + 1}) ${userName} ${pr.title} ${mergeDate}`)
   }
   console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
 }
@@ -126,7 +126,7 @@ async function getRepoFromArguments() {
  * Get the list of commits that exist in staging, but do not exist in production. Since these are on
  * the default branch, all of these commits correspond to pull requests.
  */
- async function fetchNewRefs() {
+async function fetchNewRefs() {
   const exec = require('util').promisify(require('child_process').exec);
 
   const newRefs = (
@@ -148,7 +148,7 @@ async function fetchMergedPRs(page) {
     // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
     per_page: 100,
     page,
-    sort:'updated',
+    sort: 'updated',
   })).data.filter(({ merged_at }) => merged_at);
 }
 
