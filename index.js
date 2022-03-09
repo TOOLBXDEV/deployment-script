@@ -1,9 +1,9 @@
 //
 // Setup and Execution
+//
 
 const { DateTime } = require('luxon');
 
-//
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
 const octokit = new (require('octokit').Octokit)({ auth: config.token });
@@ -121,7 +121,7 @@ async function displayNewPRs() {
 
     console.log(`(${i + 1}) ${userName} ${pr.title} (${mergeDate})`)
   }
-  
+
   console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
 }
 
