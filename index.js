@@ -114,6 +114,7 @@ async function displayNewPRs() {
 
   for (const i = 0; i < newPRs.length; ++i) {
     const pr = newPRs[i]
+
     const userName = chalk.blue(pr.user.login + ':')
     const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))
 
