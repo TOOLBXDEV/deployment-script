@@ -1,6 +1,9 @@
 //
 // Setup and Execution
 //
+
+const { DateTime } = require('luxon');
+
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
 const octokit = new (require('octokit').Octokit)({ auth: config.token });
@@ -77,7 +80,7 @@ async function getRepoFromArguments() {
  * is even more, then we would need to do it over more arrays, etc. All of this extra cases that
  * need to be accommodated would increase the risk of introducing bugs.
  */
- async function displayNewPRs() {
+async function displayNewPRs() {
   console.log('Fetching the new pull requests since the last deployment to production.');
 
   const newRefs = await fetchNewRefs();
@@ -107,16 +110,27 @@ async function getRepoFromArguments() {
 
   console.log('Pull requests deployed to staging since the last deployment to production are:\n');
 
-  for (const pr of newPRs) {
-    console.log(`- ${pr.user.login}: ${pr.title}`);
+  const uniqueUsers = new Set()
+
+  for (const i = 0; i < newPRs.length; ++i) {
+    const pr = newPRs[i]
+
+    const userName = chalk.blue(pr.user.login + ':')
+    const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))
+
+    uniqueUsers.add(pr.user.login)
+
+    console.log(`(${i + 1}) ${userName} ${pr.title} (${mergeDate})`)
   }
+
+  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
 }
 
 /**
  * Get the list of commits that exist in staging, but do not exist in production. Since these are on
  * the default branch, all of these commits correspond to pull requests.
  */
- async function fetchNewRefs() {
+async function fetchNewRefs() {
   const exec = require('util').promisify(require('child_process').exec);
 
   const newRefs = (
@@ -138,6 +152,7 @@ async function fetchMergedPRs(page) {
     // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
     per_page: 100,
     page,
+    sort: 'updated',
   })).data.filter(({ merged_at }) => merged_at);
 }
 
