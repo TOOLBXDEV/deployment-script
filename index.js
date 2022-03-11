@@ -2,6 +2,7 @@
 // Setup and Execution
 //
 
+const chalk  = require('chalk')
 const { DateTime } = require('luxon');
 
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
@@ -112,7 +113,7 @@ async function displayNewPRs() {
 
   const uniqueUsers = new Set()
 
-  for (const i = 0; i < newPRs.length; ++i) {
+  for (let i = 0; i < newPRs.length; ++i) {
     const pr = newPRs[i]
 
     const userName = chalk.blue(pr.user.login + ':')
