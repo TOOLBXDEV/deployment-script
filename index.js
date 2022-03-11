@@ -2,8 +2,8 @@
 // Setup and Execution
 //
 
-const { DateTime } = require('luxon');
 const chalk  = require('chalk')
+const { DateTime } = require('luxon');
 
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
