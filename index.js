@@ -3,6 +3,7 @@
 //
 
 const { DateTime } = require('luxon');
+const chalk  = require('chalk')
 
 const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
 // TODO: Store the access token more securely. For example, get it from macOS Keychain.
@@ -112,7 +113,7 @@ async function displayNewPRs() {
 
   const uniqueUsers = new Set()
 
-  for (const i = 0; i < newPRs.length; ++i) {
+  for (let i = 0; i < newPRs.length; ++i) {
     const pr = newPRs[i]
 
     const userName = chalk.blue(pr.user.login + ':')
