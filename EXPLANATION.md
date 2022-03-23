@@ -1,0 +1,3 @@
+The attempt here was to put all validation rules, as well as the documentation, into the JSON Schema (`config.schema.json`), and to use [tools](https://json-schema.org/implementations.html) like [JSON Schema for Humans](https://github.com/coveooss/json-schema-for-humans) to generate documentation (and put it to a GitHub Pages web page in the repository. This would be done automatically via a GitHub Actions workflow) and use [Ajv](https://github.com/ajv-validator/ajv) to validate a config file.
+
+However, decided that this is way too complex and to keep it simple. Hence, will pass everything (including the GitHub access token and GitHub organization name) from the command line.

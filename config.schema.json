@@ -1,0 +1,61 @@
+{
+  "$id": "https://github.com/TOOLBXDEV/deployment-script/config",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "$defs": {
+    "workflowId": {
+      "description": "GitHub Actions workflow file name to trigger.",
+      "type": "string",
+      "default": "deploy-to-production.yml"
+    },
+    "ref": {
+      "description": "Ref (branch or tag) name to trigger the workflow on.",
+      "type": "string",
+      "default": "staging"
+    }
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["token", "organization"],
+  "properties": {
+    "token": {
+      "description": "GitHub Personal Access Token",
+      "documentation": "The GitHub Personal Access Token that will be used to make GitHub API requests.",
+      "type": "string"
+    },
+    "organization": {
+      "description": "GitHub organization or user name",
+      "documentation": "The GitHub organization or user name which the GitHub API requests will be made against.",
+      "type": "string"
+    },
+    "workflowId": {
+      "$ref": "#/$defs/workflowId",
+      "documentation": "Name of the GitHub Actions workflow file that will be triggered if no specific configured workflow is triggered. [More information](https://docs.github.com/en/rest/reference/actions#create-a-workflow-dispatch-event)."
+    },
+    "ref": {
+      "$ref": "#/$defs/ref",
+      "documentation": "Value of the ref (branch or tag name) that the triggered workflow will be run against. [More information][GitHub API - Create Workflow Dispatch Event Reference]."
+    },
+    "workflows": {
+      "description": "Workflow groups defined for repositories. Each key must correspond to a repository name",
+      "type": "object",
+      "patternProperties": {
+        ".*": {
+          "description": "Workflows defined for repositories",
+          "type": "object",
+          "patternProperties": {
+            ".*": {
+              "description": "A custom, easy to use and remember workflow name. Does not have to correspond to a workflow file name or a workflow name defined in such file",
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["workflowId", "ref"],
+              "properties": {
+                "workflowId": { "$ref": "#/$defs/workflowId" },
+                "ref": { "$ref": "#/$defs/ref" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
