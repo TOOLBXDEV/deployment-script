@@ -111,20 +111,20 @@ async function displayNewPRs() {
 
   console.log('Pull requests deployed to staging since the last deployment to production are:\n');
 
-  const uniqueUsers = new Set()
+  const uniqueUsers = new Set();
 
   for (let i = 0; i < newPRs.length; ++i) {
-    const pr = newPRs[i]
+    const pr = newPRs[i];
 
-    const userName = chalk.cyanBright(pr.user.login + ':')
-    const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED))
+    const userName = chalk.cyanBright(pr.user.login + ':');
+    const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED));
 
-    uniqueUsers.add(pr.user.login)
+    uniqueUsers.add(pr.user.login);
 
-    console.log(`(${i + 1}) ${userName} ${pr.title} (${mergeDate})`)
+    console.log(`(${i + 1}) ${userName} ${pr.title} (${mergeDate})`);
   }
 
-  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`)
+  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`);
 }
 
 /**
