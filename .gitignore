@@ -1,4 +1,3 @@
 /node_modules/
-config.json
 # Ignore checked out repositories
 /*.git/

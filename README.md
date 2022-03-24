@@ -1,10 +1,5 @@
 ## Introduction
-This program enables you to understand which pull requests have been deployed to the staging environment since the last deployment to the production environment. For this program to be of use, your development and deployment workflow should be as follows:
-
-- The default branch (which is commonly named `master` or `main`) is the branch that the application runs from. That is, all development is performed on feature branches that are usually branched off of the default branch, and when the work is completed, this feature branch is merged into the default branch via a pull request.
-- It is forbidden to make changes on ("push to") the default branch directly. All changes on the default branch must be made via merging a pull request.
-- A merge to the default branch automatically triggers a deployment to the staging. If the deployment is successful, the deployment workflow creates a lightweight tag named "staging" that points to this commit.
-- Deployment to production is done manually, with this help of this program. This program will show which new pull requests exist in staging since the last deployment to the production. After approval, it will run the workflow that will deploy staging to production. If the deployment is successful, the deployment workflow creates a lightweight tag named "production" that points to this commit.
+This program will show you the pull requests between two refs and then let you trigger a GitHub Actions workflow on a repository. For this program to work correctly, the refs must exist on a branch which is advanced only via pull requests. That is, ideally this branch should be a [protected branch](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/defining-the-mergeability-of-pull-requests/about-protected-branches#require-pull-request-reviews-before-merging).
 
 ## Requirements
 - Bash
@@ -14,18 +9,18 @@ This program enables you to understand which pull requests have been deployed to
 ## Installation and Set-Up (Configuration)
 - Clone this repository to anywhere in your machine.
 - Change into this directory and run `npm install`.
-- On GitHub, [create a personal access token](https://github.com/settings/tokens) with `workflow` scope.
-- Create a `config.json` with the following structure:
-
-  ```json
-  {
-    "token": "Your GitHub Personal Access Token goes here",
-    "organization": "Your organization name on GitHub goes here"
-  }
-  ```
+- On GitHub, [create a personal access token](https://github.com/settings/tokens) with `repo` scope.
 
 ## Usage
-From a terminal, change into the directory of this repository and run `./deploy <repo>`, where `<repo>` is the name of the repository that you want to deploy. Then follow the instructions.
+This program requires the following command line arguments, in the given order:
+- GitHub Personal Access Token.
+- Owner (organization or user) name on GitHub.
+- Repository name on GitHub.
+- GitHub Actions workflow ID (or file name) to trigger.
+- Latter ref (branch or tag) to compare the former ref with.
+- Former ref (branch or tag) to compare with the latter ref. This will also be the ref that the GitHub Actions workflow will be run at.
+
+Since there are many arguments, the recommended way of using this program is creating a "wrapper script" that will call this program. For example, at TOOLBX, we are using [this script](https://gist.github.com/toolbx-machine-user/37fe1fe8f771abdc7aacdff8166051e7). Note that you can write the wrapper script in any language that you like. The fact that our wrapper script being in JavaScript is only coincidental.
 
 ## Notes
-The first time that you run the program for a repository, it will take longer than the subsequent times, since the first run on a repository will clone the repository to your machine.
+The first time that you run the program for a repository, it will take longer compared to the subsequent times, since the first run on a repository will clone the repository to your machine.

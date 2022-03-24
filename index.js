@@ -1,16 +1,35 @@
 //
 // Setup and Execution
 //
+function getConfig() {
+  const EXPECTED_NUMBER_OR_ARGUMENTS = 6;
 
-const chalk  = require('chalk')
-const { DateTime } = require('luxon');
+  // Remove the first two elements, since they are the file paths of the interpreter (Node.js) and program.
+  process.argv.splice(0, 2);
 
-const config = JSON.parse(require('fs').readFileSync('config.json', 'utf-8'));
-// TODO: Store the access token more securely. For example, get it from macOS Keychain.
+  const numberOfArguments = process.argv.length;
+
+  if (numberOfArguments !== EXPECTED_NUMBER_OR_ARGUMENTS) {
+    console.error(`Expected ${EXPECTED_NUMBER_OR_ARGUMENTS} arguments but got ${numberOfArguments}. Please view the documentation to learn more about the program.`);
+    process.exit(1);
+  }
+
+  return {
+    token: process.argv[0],
+    owner: process.argv[1],
+    repo: process.argv[2],
+    workflowId: process.argv[3],
+    stagingRef: process.argv[4],
+    productionRef: process.argv[5],
+  };
+}
+
+const config = getConfig();
 const octokit = new (require('octokit').Octokit)({ auth: config.token });
-const baseOctokitArgs = { owner: config.organization };
-
-let repo;
+const baseOctokitArgs = {
+  owner: config.owner,
+  repo: config.repo
+};
 
 main();
 
@@ -18,30 +37,8 @@ main();
 // Helper Functions
 //
 async function main() {
-  repo = await getRepoFromArguments();
-
   await displayNewPRs();
   await promptForDeployment();
-}
-
-async function getRepoFromArguments() {
-  const repos = (
-    await octokit.rest.repos.listForOrg({ org: config.organization })
-  ).data.map(({ name }) => name);
-
-  const repo = process.argv[2];
-
-  if (process.argv.length !== 3 || !repos.includes(repo)) {
-    console.log('Please specify exactly one argument, which must be one of:');
-    for (const repo of repos) {
-      console.log(`- ${repo}`);
-    }
-    process.exit(1);
-  }
-
-  baseOctokitArgs.repo = repo;
-
-  return repo;
 }
 
 /**
@@ -93,7 +90,7 @@ async function displayNewPRs() {
     const mergedPRs = await fetchMergedPRs(pullsRequestsPageNumber);
 
     if (mergedPRs.length === 0) {
-      console.log("No merged PRs found. This means that there is probably something wrong the repo (or with this program). Cancelling deployment.");
+      console.log("No merged PRs found. This means that there is either something wrong the repo or with this program. Cancelling deployment.");
       process.exit(1);
     }
 
@@ -111,13 +108,16 @@ async function displayNewPRs() {
 
   console.log('Pull requests deployed to staging since the last deployment to production are:\n');
 
+  const { cyanBright, green }  = require('chalk')
+  const { DateTime: { fromISO, DATETIME_MED} } = require('luxon');
+
   const uniqueUsers = new Set();
 
   for (let i = 0; i < newPRs.length; ++i) {
     const pr = newPRs[i];
 
-    const userName = chalk.cyanBright(pr.user.login + ':');
-    const mergeDate = chalk.green(DateTime.fromISO(pr.merged_at).toLocaleString(DateTime.DATETIME_MED));
+    const userName = cyanBright(pr.user.login + ':');
+    const mergeDate = green(fromISO(pr.merged_at).toLocaleString(DATETIME_MED));
 
     uniqueUsers.add(pr.user.login);
 
@@ -135,7 +135,7 @@ async function fetchNewRefs() {
   const exec = require('util').promisify(require('child_process').exec);
 
   const newRefs = (
-    await exec(`./fetch-new-refs.sh ${config.organization} ${repo}`)
+    await exec(`./fetch-new-refs.sh ${config.owner} ${config.repo} ${config.stagingRef} ${config.productionRef}`)
   ).stdout.trim();
 
   if (!newRefs) {
@@ -175,17 +175,16 @@ async function promptForDeployment() {
     process.exit(1);
   }
 
-  console.log(`Deploying ${repo} to production.`);
+  console.log(`Deploying ${config.repo} to production.`);
   await triggerDeploymentWorkflow();
 }
 
 async function triggerDeploymentWorkflow() {
   await octokit.rest.actions.createWorkflowDispatch({
     ...baseOctokitArgs,
-    // TODO: Make this configurable
-    workflow_id: 'deploy-to-production.yml',
-    ref: 'staging',
+    workflow_id: config.workflowId,
+    ref: config.stagingRef,
   });
 
-  console.log(`Started deployment. You can view the progress at https://github.com/${config.organization}/${repo}/actions/workflows/deploy-to-production.yml`);
+  console.log(`Started deployment. You can view the progress at https://github.com/${config.owner}/${config.repo}/actions/workflows/${config.workflowId}`);
 }
