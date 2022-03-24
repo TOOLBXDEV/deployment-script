@@ -17,8 +17,8 @@ This program requires the following command line arguments, in the given order:
 - Owner (organization or user) name on GitHub.
 - Repository name on GitHub.
 - GitHub Actions workflow ID (or file name) to trigger.
-- Latter ref (branch or tag) to compare the former ref with.
-- Former ref (branch or tag) to compare with the latter ref. This will also be the ref that the GitHub Actions workflow will be run at.
+- Latter ref (branch or tag) to compare the former ref with. This will also be the ref that the GitHub Actions workflow will be run at.
+- Former ref (branch or tag) to compare with the latter ref.
 
 Since there are many arguments, the recommended way of using this program is creating a "wrapper script" that will call this program. For example, at TOOLBX, we are using [this script](https://gist.github.com/toolbx-machine-user/37fe1fe8f771abdc7aacdff8166051e7). Note that you can write the wrapper script in any language that you like. The fact that our wrapper script being in JavaScript is only coincidental.
 
