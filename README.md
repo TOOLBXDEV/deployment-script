@@ -12,7 +12,7 @@ This program will show you the pull requests between two refs and then let you t
 - On GitHub, [create a personal access token](https://github.com/settings/tokens) with `repo` scope.
 
 ## Usage
-This program requires the following command line arguments, in the given order:
+This program requires the following command line arguments in the given order:
 - GitHub Personal Access Token.
 - Owner (organization or user) name on GitHub.
 - Repository name on GitHub.
