@@ -20,7 +20,7 @@ This program requires the following command line arguments in the given order:
 - Staging (latter) ref (branch or tag) to compare with the production (former) ref. This will also be the ref that the GitHub Actions workflow will be run at.
 - Production ref to compare the staging ref with.
 
-Since there are many arguments, the recommended way of using this program is creating a "wrapper script" that will call this program. For example, at TOOLBX, we are using [this script](https://github.com/TOOLBXDEV/deployment-script-toolbx/blob/master/deploy). Note that you can write the wrapper script in any language that you like. The fact that our wrapper script being in JavaScript is only coincidental.
+Since there are many arguments, the recommended way of using this program is creating a "wrapper script" that will call this program.
 
 ## Notes
 The first time that you run the program for a repository, it will take longer compared to the subsequent times, since the first run on a repository will clone the repository to your machine.
