@@ -167,7 +167,7 @@ async function promptForDeployment() {
 
   const { answer } = await prompt.get({
     name: 'answer',
-    description: `\nPlease take a screenshot of the pull requests and post it to the #dev Slack channel, tagging every developer above. After getting their approval, type "${correctAnswer}" (without the quotes) and press return to continue the deployment`,
+    description: `\nPlease copy the text of the pull request list and post it to the #dev Slack channel, tagging every developer above. After getting their approval, type "${correctAnswer}" (without the quotes) and press return to continue the deployment`,
   });
 
   if (answer !== correctAnswer) {
