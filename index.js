@@ -136,8 +136,8 @@ async function fetchNewCommits() {
     const response = await octokit.rest.repos.compareCommits({
       owner: config.owner,
       repo: config.repo,
-      base: 'production',
-      head: 'master',
+      base: config.productionRef,
+      head: config.stagingRef,
     });
 
     const {
