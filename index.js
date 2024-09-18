@@ -42,22 +42,25 @@ async function main() {
   await promptForDeployment();
 }
 
-async function getPullRequestByCommitSha(sha, config) {
-  const response = await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
-    owner: config.owner,
-    repo: config.repo,
-    commit_sha: sha,
-  });
+async function getPullRequestByCommitSha(sha) {
+  const response =
+    await octokit.rest.repos.listPullRequestsAssociatedWithCommit({
+      owner: config.owner,
+      repo: config.repo,
+      commit_sha: sha,
+    });
   // Unless I'm wrong, this should only ever be one PR per commit, to the master
   // branch. However, the API returns an array, so we'll just filter it to be
   // safe.
-  const onlyToMaster = response.data.filter((pr) => pr.base.ref === 'master'); 
+  const onlyToMaster = response.data.filter((pr) => pr.base.ref === "master");
   if (onlyToMaster.length === 0) {
     console.log(`No PRs found for commit ${sha}`);
     process.exit(1);
   }
   if (onlyToMaster.length > 1) {
-    console.log(`Found ${onlyToMaster.length} PRs for commit ${sha}. There should only be one. Cancelling deployment. This suggests that something is wrong with the deployment script.`);
+    console.log(
+      `Found ${onlyToMaster.length} PRs for commit ${sha}. There should only be one. Cancelling deployment. This suggests that something is wrong with the deployment script.`
+    );
     process.exit(1);
   }
   return onlyToMaster[0];
@@ -67,68 +70,83 @@ async function getPullRequestByCommitSha(sha, config) {
  * Find the pull requests that exist in staging, but not in production.
  */
 async function displayNewPRs() {
-  console.log('Fetching the new pull requests since the last deployment to production.\n');
+  console.log(
+    "Fetching the new pull requests since the last deployment to production.\n"
+  );
 
-  const newRefs = await fetchNewRefs();
-  const mapRefToPR = new Map();
+  const newCommits = await fetchNewCommits();
 
-  for (const ref of newRefs) {
-    const pr = await getPullRequestByCommitSha(ref, config);
-    mapRefToPR.set(ref, pr);
+  if (newCommits.length === 0) {
+    console.log("Production is the same as staging. Nothing to deploy.");
+    process.exit();
   }
 
-  console.log('Pull requests deployed to staging since the last deployment to production are:\n');
+  // Mutiple commits might be the same PR if it's a merge commit
+  const uniquePRs = new Map(
+    await Promise.all(
+      newCommits.map(async (commit) => {
+        const pr = await getPullRequestByCommitSha(commit.sha);
+        return [pr.id, pr];
+      })
+    )
+  );
 
-  const { cyanBright, green, grey }  = require('chalk')
-  const { DateTime: { fromISO, DATETIME_MED} } = require('luxon');
+  const prs = Array.from(uniquePRs.values()).sort((a, b) =>
+    a.merged_at.localeCompare(b.merged_at)
+  );
+
+  const { cyanBright, green, grey } = require("chalk");
+  const {
+    DateTime: { fromISO, DATETIME_MED },
+  } = require("luxon");
 
   const uniqueUsers = new Set();
 
-  for (const [i, ref] of newRefs.entries()) {
-    const pr = mapRefToPR.get(ref);
+  console.log(
+    "Pull requests deployed to staging since the last deployment to production are:\n"
+  );
 
-    const userName = cyanBright(pr.user.login + ':');
+  for (const [i, pr] of prs.entries()) {
+    const userName = cyanBright(pr.user.login + ":");
     const mergeDate = green(fromISO(pr.merged_at).toLocaleString(DATETIME_MED));
-    const shortSha = grey(ref.slice(0, 7));
+    const shortSha = grey(pr.merge_commit_sha.slice(0, 7));
     const webUrl = grey(pr.html_url);
 
     uniqueUsers.add(pr.user.login);
 
-    console.log(`(${i + 1}) ${userName} ${pr.title} (${shortSha}, ${mergeDate})`);
+    console.log(
+      `(${i + 1}) ${userName} ${pr.title} (${shortSha}, ${mergeDate})`
+    );
     console.log(`     ${webUrl}`);
   }
 
-  console.log(`\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(' ')}`);
+  console.log(
+    `\nUnique User List[${uniqueUsers.size}]: ${Array.from(uniqueUsers).join(
+      " "
+    )}`
+  );
 }
 
 /**
  * Get the list of commits that exist in staging, but do not exist in production. Since these are on
  * the default branch, all of these commits correspond to pull requests.
  */
-async function fetchNewRefs() {
-  const exec = require('util').promisify(require('child_process').exec);
+async function fetchNewCommits() {
+  try {
+    const response = await octokit.rest.repos.compareCommits({
+      owner: config.owner,
+      repo: config.repo,
+      base: config.productionRef,
+      head: config.stagingRef,
+    });
 
-  const newRefs = (
-    await exec(`./fetch-new-refs.sh ${config.owner} ${config.repo} ${config.stagingRef} ${config.productionRef}`)
-  ).stdout.trim();
-
-  if (!newRefs) {
-    console.log('Production is the same as staging. Nothing to deploy.');
-    process.exit();
+    const {
+      data: { commits },
+    } = response;
+    return commits;
+  } catch (error) {
+    throw new Error(`GitHub API request failed: ${error.message}`);
   }
-
-  return newRefs.split('\n');
-}
-
-async function fetchMergedPRs(page) {
-  return (await octokit.rest.pulls.list({
-    ...baseOctokitArgs,
-    state: 'closed',
-    // 100 is the max value: https://docs.github.com/en/rest/reference/pulls#list-pull-requests
-    per_page: 100,
-    page,
-    sort: 'updated',
-  })).data.filter(({ merged_at }) => merged_at);
 }
 
 async function promptForDeployment() {
