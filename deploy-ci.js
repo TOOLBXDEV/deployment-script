@@ -20,7 +20,6 @@ function getConfig() {
     productionRef: process.env.DEPLOY_PRODUCTION_REF,
     slackBotToken: process.env.SLACK_BOT_TOKEN,
     slackChannel: process.env.SLACK_CHANNEL,
-    approvalUrl: process.env.APPROVAL_URL || '',
   };
 }
 
@@ -146,23 +145,9 @@ async function postToSlack(prs, slackUserIds) {
     },
   ];
 
-  if (config.approvalUrl) {
-    blocks.push({
-      type: 'actions',
-      elements: [
-        {
-          type: 'button',
-          text: { type: 'plain_text', text: '✅ Approve Deploy in GitHub', emoji: true },
-          url: config.approvalUrl,
-          style: 'primary',
-        },
-      ],
-    });
-  }
-
   await slack.chat.postMessage({
     channel: config.slackChannel,
-    text: `Deploy ${config.owner}/${config.repo} to production — ${prs.length} PR(s) waiting for approval`,
+    text: `Deploy ${config.owner}/${config.repo} to production — ${prs.length} PR(s)`,
     blocks,
   });
 
