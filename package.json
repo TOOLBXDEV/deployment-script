@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@slack/web-api": "^7.9.1",
     "chalk": "^4.1.2",
     "luxon": "^2.3.1",
     "node-fetch": "^2.7.0",
